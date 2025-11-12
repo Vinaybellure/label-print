@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import type { ChangeEvent } from "react";
 import {
   Box,
   Button,
@@ -19,15 +20,31 @@ import FormDataDialog from "./FormData/FormDataDialog";
 import Logo from "../assets/logo.png";
 import "./LabelGenerator.css";
 
-const A4_WIDTH = 794; // px
-const A4_HEIGHT = 1123; // px
-const LABELS_PER_PAGE = 9; // 3 cols × 9 rows approx.
+const A4_WIDTH = 794;
+const A4_HEIGHT = 1000;
+const LABELS_PER_PAGE = 9;
+
+// ✅ Define Label structure
+export interface LabelData {
+  id: number;
+  productName: string;
+  monthYear: string;
+  style: string;
+  size: string;
+  color: string;
+  gender: string;
+  mrp: string;
+  qty: string;
+  origin: string;
+  customerCare: string;
+  email: string;
+}
 
 export default function LabelPrinter() {
-  const [labels, setLabels] = useState([]);
+  const [labels, setLabels] = useState<LabelData[]>([]);
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    // barcode: "8907979418367",
+  const [snackbar, setSnackbar] = useState<string>("");
+  const [formData, setFormData] = useState<Omit<LabelData, "id">>({
     productName: "",
     monthYear: "",
     style: "",
@@ -40,9 +57,26 @@ export default function LabelPrinter() {
     customerCare: "",
     email: "",
   });
-  const [snackbar, setSnackbar] = useState("");
 
-  const printRef = useRef();
+  const printRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Fix: proper TypeScript signature
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Labels",
+    pageStyle: `
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+      }
+    `,
+  });
 
   const handleAddLabel = () => {
     if (labels.length >= LABELS_PER_PAGE) {
@@ -52,23 +86,10 @@ export default function LabelPrinter() {
       return;
     }
     setLabels([...labels, { ...formData, id: Date.now() }]);
-    setFormData({
-      productName: "",
-      monthYear: "",
-      style: "",
-      size: "",
-      color: "",
-      gender: "",
-      mrp: "",
-      qty: "",
-      origin: "",
-      customerCare: "",
-      email: "",
-    });
-    setOpen(false);
+    handleClear();
   };
 
-  const handleDuplicate = (label) => {
+  const handleDuplicate = (label: LabelData) => {
     if (labels.length >= LABELS_PER_PAGE) {
       setSnackbar(
         "A4 page is full. Please delete or print before adding more."
@@ -78,30 +99,15 @@ export default function LabelPrinter() {
     setLabels([...labels, { ...label, id: Date.now() }]);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number) => {
     setLabels(labels.filter((l) => l.id !== id));
   };
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef, // ✅ this avoids "There is nothing to print"
-    documentTitle: "Labels",
-    pageStyle: `
-    @page {
-      size: A4 portrait;
-      margin: 10mm;
-    }
-    @media print {
-      body {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-    }
-  `,
-  });
-
-  const handleChangeItem = (e) => {
-    let value = e.target.value;
-    setFormData((prev) => ({ ...prev, [e.target.name]: value }));
+  const handleChangeItem = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleClear = () => {
@@ -133,7 +139,7 @@ export default function LabelPrinter() {
         </Button>
       </Box>
 
-      {/* A4 Preview (always fixed size) */}
+      {/* A4 Preview */}
       <div
         ref={printRef}
         style={{
@@ -158,14 +164,12 @@ export default function LabelPrinter() {
             sx={{
               width: "194px",
               position: "relative",
-              border: "1px solid black",
-              p: "6px",
+              border: "none",
+              // border: "1px solid black",
+              p: "5px",
             }}
           >
             <CardContent sx={{ p: 1, textAlign: "left" }}>
-              {/* <Typography variant="caption" sx={{ letterSpacing: "6px" }}>
-                ||||| |||| |||| |
-              </Typography> */}
               <div
                 style={{
                   display: "flex",
@@ -173,14 +177,12 @@ export default function LabelPrinter() {
                   width: "100%",
                 }}
               >
-                <img src={Logo} style={{ height: "30px" }} />
+                <img src={Logo} alt="Logo" style={{ height: "30px" }} />
               </div>
-
-              {/* <Typography variant="caption">4 8 9203</Typography> */}
               <hr />
               <Typography
                 variant="body2"
-                style={{
+                sx={{
                   fontSize: "13px",
                   fontWeight: "bold",
                   fontFamily: "monospace",
@@ -190,7 +192,7 @@ export default function LabelPrinter() {
                 {label.productName}
               </Typography>
               <Typography variant="body2" sx={{ fontSize: "9px" }}>
-                Month & Year of Mannufacture: {label.monthYear}
+                Month & Year of Manufacture: {label.monthYear}
               </Typography>
               <Typography variant="body2" sx={{ fontSize: "9px" }}>
                 Style: {label.style}
@@ -201,9 +203,6 @@ export default function LabelPrinter() {
               <Typography variant="body2" sx={{ fontSize: "9px" }}>
                 Color: {label.color}
               </Typography>
-              {/* <Typography variant="body2">
-                Product: {label.productName}
-              </Typography> */}
               <Typography variant="body2" sx={{ fontSize: "9px" }}>
                 Gender: {label.gender}
               </Typography>
@@ -276,7 +275,7 @@ export default function LabelPrinter() {
         ))}
       </div>
 
-      {/* Popup Form */}
+      {/* Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Add Label Data</DialogTitle>
         <DialogContent
@@ -288,7 +287,6 @@ export default function LabelPrinter() {
             handleAddLabel={handleAddLabel}
           />
         </DialogContent>
-
         <DialogActions>
           <Button onClick={handleClear}>Cancel</Button>
           <Button onClick={handleAddLabel} variant="contained">
@@ -297,7 +295,7 @@ export default function LabelPrinter() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for warnings */}
+      {/* Snackbar */}
       <Snackbar
         open={!!snackbar}
         autoHideDuration={3000}
