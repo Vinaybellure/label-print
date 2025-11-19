@@ -22,7 +22,7 @@ import "./LabelGenerator.css";
 
 const A4_WIDTH = 794;
 const A4_HEIGHT = 1000;
-const LABELS_PER_PAGE = 9;
+const LABELS_PER_PAGE = 16;
 
 // ✅ Define Label structure
 export interface LabelData {
@@ -37,7 +37,6 @@ export interface LabelData {
   qty: string;
   origin: string;
   customerCare: string;
-  email: string;
 }
 
 export default function LabelPrinter() {
@@ -55,7 +54,6 @@ export default function LabelPrinter() {
     qty: "",
     origin: "",
     customerCare: "",
-    email: "",
   });
 
   const printRef = useRef<HTMLDivElement>(null);
@@ -122,7 +120,6 @@ export default function LabelPrinter() {
       qty: "",
       origin: "",
       customerCare: "",
-      email: "",
     });
     setOpen(false);
   };
@@ -148,12 +145,12 @@ export default function LabelPrinter() {
           height: `${A4_HEIGHT}px`,
           margin: "0 auto",
           boxShadow: "0 0 5px rgba(0,0,0,0.3)",
-          padding: "16px",
+          padding: "6px",
           boxSizing: "border-box",
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(4, 1fr)",
           gridAutoRows: "min-content",
-          gap: "12px",
+          gap: "2px",
           overflow: "hidden",
         }}
       >
@@ -166,7 +163,7 @@ export default function LabelPrinter() {
               position: "relative",
               border: "none",
               // border: "1px solid black",
-              p: "5px",
+              // p: "5px",
             }}
           >
             <CardContent sx={{ p: 1, textAlign: "left" }}>
@@ -219,20 +216,6 @@ export default function LabelPrinter() {
               <Typography
                 variant="caption"
                 display="block"
-                sx={{ fontSize: "11px", lineHeight: "8px" }}
-              >
-                Email:
-              </Typography>
-              <Typography
-                variant="caption"
-                display="block"
-                sx={{ fontSize: "11px", lineHeight: "8px" }}
-              >
-                {label.email}
-              </Typography>
-              <Typography
-                variant="caption"
-                display="block"
                 sx={{ mt: 1, fontSize: "11px", lineHeight: "8px" }}
               >
                 Customer care:
@@ -240,7 +223,7 @@ export default function LabelPrinter() {
               <Typography
                 variant="caption"
                 display="block"
-                sx={{ fontSize: "11px", lineHeight: "8px" }}
+                sx={{ fontSize: "11px", lineHeight: "8px", mt: 0.5 }}
               >
                 {label.customerCare}
               </Typography>

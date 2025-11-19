@@ -184,15 +184,6 @@ const FormDataDialog = (props: any) => {
           size="small"
           onChange={handleOnChange}
         />
-        <TextField
-          name="email"
-          value={formData.email}
-          id="outlined-basic"
-          label="Email ID"
-          variant="outlined"
-          size="small"
-          onChange={handleOnChange}
-        />
         {/* <Box>
           <Button variant="outlined" onClick={handleAddLabel}>
             Add Data & Preview
